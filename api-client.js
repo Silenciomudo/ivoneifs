@@ -1,27 +1,58 @@
 (function (global) {
   "use strict";
 
-  var API_URL = "/api/openai";
-  var HEALTH_URL = "/api/health";
   var _hasOpenAI = null;
+  var _cfg = null;
+
+  function getConfig() {
+    if (_cfg) return _cfg;
+    var pub = global.PROMPT_ATELIER_PUBLIC || {};
+    _cfg = {
+      supabaseUrl: (pub.supabaseUrl || "").replace(/\/$/, ""),
+      supabaseAnonKey: pub.supabaseAnonKey || "",
+    };
+    return _cfg;
+  }
+
+  function apiBase() {
+    var cfg = getConfig();
+    return cfg.supabaseUrl ? cfg.supabaseUrl + "/functions/v1" : "";
+  }
+
+  function supabaseHeaders() {
+    var cfg = getConfig();
+    return {
+      "Content-Type": "application/json",
+      apikey: cfg.supabaseAnonKey,
+      Authorization: "Bearer " + cfg.supabaseAnonKey,
+    };
+  }
 
   function parseError(res, data) {
     return (data && data.error) || "Erro na requisição (" + res.status + ")";
   }
 
   async function checkHealth() {
+    var base = apiBase();
+    var cfg = getConfig();
+
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+      _hasOpenAI = false;
+      return { ok: false, openai: false, server: false, supabase: false };
+    }
+
     try {
-      var res = await fetch(HEALTH_URL);
+      var res = await fetch(base + "/health", { headers: supabaseHeaders() });
       if (!res.ok) {
         _hasOpenAI = false;
-        return { ok: false, openai: false, server: false };
+        return { ok: false, openai: false, server: true, supabase: true };
       }
       var data = await res.json();
       _hasOpenAI = Boolean(data.openai);
-      return Object.assign({ server: true }, data);
+      return Object.assign({ server: true, supabase: true }, data);
     } catch (e) {
       _hasOpenAI = false;
-      return { ok: false, openai: false, server: false };
+      return { ok: false, openai: false, server: false, supabase: true };
     }
   }
 
@@ -30,12 +61,14 @@
     if (existing) existing.remove();
 
     var msg = "";
-    if (!health.server) {
+    if (!health.supabase) {
+      msg = "Configure config.public.js com supabaseUrl e supabaseAnonKey do seu projeto Supabase.";
+    } else if (!health.server) {
       msg =
-        "Servidor API não encontrado. Feche Live Server/serve e rode: npm run dev — depois acesse http://localhost:3456";
+        "Edge Functions não encontradas. No Supabase, faça deploy: supabase functions deploy openai health";
     } else if (!health.openai) {
       msg =
-        "OpenAI não configurada: edite o arquivo .env, coloque sua OPENAI_API_KEY (sk-...) e reinicie com npm run dev";
+        "OpenAI não configurada. Supabase Dashboard → Edge Functions → Secrets → adicione OPENAI_API_KEY";
     } else {
       return;
     }
@@ -49,9 +82,12 @@
   }
 
   async function request(action, payload) {
-    var res = await fetch(API_URL, {
+    var base = apiBase();
+    if (!base) throw new Error("Supabase não configurado em config.public.js");
+
+    var res = await fetch(base + "/openai", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: supabaseHeaders(),
       body: JSON.stringify(Object.assign({ action: action }, payload || {})),
     });
     var data = await res.json();
@@ -90,7 +126,7 @@
   async function withFallback(apiFn, fallbackFn) {
     try {
       var health = await checkHealth();
-      if (!health.openai) throw new Error("API OpenAI não configurada no .env");
+      if (!health.openai) throw new Error("OpenAI não configurada no Supabase Secrets");
       return await apiFn();
     } catch (err) {
       if (typeof fallbackFn === "function") {

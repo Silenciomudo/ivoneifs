@@ -1,0 +1,20 @@
+# Prompt Atelier — Supabase project
+# Dashboard: https://supabase.com/dashboard/project/zsjmksdkawstrhxkzyls
+
+project_id = "zsjmksdkawstrhxkzyls"
+
+[functions.openai]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = false
+
+# Deploy secrets (Dashboard → Edge Functions → Secrets):
+#   OPENAI_API_KEY = sk-...
+#   OPENAI_MODEL   = gpt-4o-mini  (opcional)
+#
+# Deploy CLI:
+#   supabase link --project-ref zsjmksdkawstrhxkzyls
+#   supabase secrets set OPENAI_API_KEY=sk-sua-chave
+#   supabase functions deploy openai
+#   supabase functions deploy health

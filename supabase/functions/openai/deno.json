@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "strict": true
+  },
+  "imports": {
+    "@supabase/functions-js": "jsr:@supabase/functions-js@^2"
+  }
+}

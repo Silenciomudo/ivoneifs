@@ -4,15 +4,7 @@
   var client = null;
   var initPromise = null;
 
-  async function loadConfig() {
-    try {
-      var res = await fetch("/api/config");
-      if (res.ok) {
-        var data = await res.json();
-        if (data.supabaseUrl && data.supabaseAnonKey) return data;
-      }
-    } catch (e) {}
-
+  function loadConfig() {
     var pub = global.PROMPT_ATELIER_PUBLIC || {};
     return {
       supabaseUrl: pub.supabaseUrl || "",
@@ -29,12 +21,11 @@
         throw new Error("Biblioteca Supabase não carregada. Recarregue a página.");
       }
 
-      var cfg = await loadConfig();
+      var cfg = loadConfig();
 
       if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
         throw new Error(
-          "Supabase não configurado. Cole SUPABASE_ANON_KEY no .env e rode npm run dev, " +
-          "ou preencha config.public.js com a chave anon do dashboard Supabase."
+          "Supabase não configurado. Edite config.public.js com supabaseUrl e supabaseAnonKey."
         );
       }
 
@@ -56,8 +47,13 @@
     return client;
   }
 
+  function getConfig() {
+    return loadConfig();
+  }
+
   global.PromptSupabase = {
     init: init,
     getClient: getClient,
+    getConfig: getConfig,
   };
 })(window);
