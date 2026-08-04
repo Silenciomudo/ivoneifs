@@ -126,7 +126,7 @@
   async function withFallback(apiFn, fallbackFn) {
     try {
       var health = await checkHealth();
-      if (!health.openai) throw new Error("OpenAI não configurada no Supabase Secrets");
+      if (!health.openai) throw new Error("OpenAI não configurada no Supabase");
       return await apiFn();
     } catch (err) {
       if (typeof fallbackFn === "function") {

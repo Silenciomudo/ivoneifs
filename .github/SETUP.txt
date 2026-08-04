@@ -1,0 +1,18 @@
+# Deploy 100% automático — Prompt Atelier
+#
+# UMA VEZ (GitHub Secrets):
+#   https://github.com/Silenciomudo/ivoneifs/settings/secrets/actions
+#
+#   SUPABASE_ACCESS_TOKEN  → https://supabase.com/dashboard/account/tokens
+#   OPENAI_API_KEY         → sk-...
+#
+# UMA VEZ (GitHub Pages):
+#   Settings → Pages → Source: GitHub Actions
+#
+# UMA VEZ (Supabase Auth URLs):
+#   Site URL: https://silenciomudo.github.io/ivoneifs/
+#   Redirects: https://silenciomudo.github.io/ivoneifs/**
+#
+# DEPOIS: git push → deploy automático (site + Supabase functions)
+#
+# LOCAL: duplo-clique em scripts/iniciar.bat  OU  npm run go
