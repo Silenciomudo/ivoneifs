@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crie prompts de agente de IA com papel, tom e instruções — para ChatGPT, Claude e outros.">
+  <title>Prompt de Agente — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Prompt de Agente</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1>Gerador de Prompt de Agente de IA</h1>
+        <p>Crie agentes especializados com papel, personalidade e instruções claras.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="agentRole">Papel do agente</label>
+            <select id="agentRole">
+              <option value="assistant">Assistente</option>
+              <option value="expert">Especialista</option>
+              <option value="teacher">Professor</option>
+              <option value="consultant">Consultor</option>
+              <option value="writer">Escritor</option>
+              <option value="analyst">Analista</option>
+              <option value="researcher">Pesquisador</option>
+              <option value="creative">Criativo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="agentTone">Tom de comunicação</label>
+            <select id="agentTone">
+              <option value="professional">Profissional</option>
+              <option value="friendly">Amigável</option>
+              <option value="formal">Formal</option>
+              <option value="casual">Casual</option>
+              <option value="expert">Especialista</option>
+              <option value="supportive">Apoiador</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="agentTask">Tarefa / objetivo principal</label>
+          <textarea id="agentTask" placeholder="Ex: Atuar como coach de carreira para ajudar a melhorar currículos..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="agentContext">Contexto adicional (opcional)</label>
+          <textarea id="agentContext" rows="3" placeholder="Ex: O usuário é recém-formado com pouca experiência..."></textarea>
+        </div>
+
+        <p class="form-group" style="margin-bottom:0.5rem;font-size:0.85rem;color:var(--text-muted);">Modelos rápidos</p>
+        <div class="template-grid" id="templateGrid"></div>
+
+        <div class="form-actions" style="margin-top:1.25rem;">
+          <button type="button" class="btn btn-primary" id="agentGenerateBtn">Gerar Prompt de Agente</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Limpar</button>
+        </div>
+
+        <div class="result-box">
+          <label>
+            Prompt gerado
+            <button type="button" class="copy-sm" data-copy-from="agentResult">Copiar</button>
+          </label>
+          <div id="agentResult" class="result-output empty">Seu prompt de agente aparecerá aqui...</div>
+        </div>
+      </div>
+
+      <section class="content-block faq-section">
+        <h2>Perguntas frequentes</h2>
+        <details class="faq-item">
+          <summary>Como funciona?</summary>
+          <p>Combine papel, tom e tarefa. O gerador monta um prompt de sistema reutilizável para colar no início de conversas com ChatGPT, Claude ou similares.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Qual combinação usar?</summary>
+          <p>Professor + Apoiador para ensino; Especialista + Profissional para negócios; Escritor + Criativo para conteúdo.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Prompt Atelier</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="engine.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var TEMPLATES = [
+        { title: "Tutor", role: "teacher", tone: "supportive", task: "Explicar conceitos complexos em linguagem simples, com exemplos e exercícios." },
+        { title: "Consultor", role: "consultant", tone: "professional", task: "Analisar ideias de negócio e fornecer recomendações estratégicas acionáveis." },
+        { title: "Escritor", role: "writer", tone: "creative", task: "Ajudar a desenvolver textos, roteiros e ideias criativas com tom envolvente." },
+        { title: "Analista", role: "analyst", tone: "expert", task: "Interpretar dados, identificar tendências e apresentar insights claros." },
+        { title: "Coach de carreira", role: "consultant", tone: "supportive", task: "Orientar melhoria de currículo, entrevistas e plano de carreira." },
+        { title: "Suporte técnico", role: "expert", tone: "friendly", task: "Resolver problemas técnicos com passos claros e linguagem acessível." },
+      ];
+
+      var grid = document.getElementById("templateGrid");
+      TEMPLATES.forEach(function (t) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "template-btn";
+        btn.innerHTML = t.title + "<span>" + t.task.slice(0, 40) + "…</span>";
+        btn.addEventListener("click", function () {
+          document.getElementById("agentRole").value = t.role;
+          document.getElementById("agentTone").value = t.tone;
+          document.getElementById("agentTask").value = t.task;
+        });
+        grid.appendChild(btn);
+      });
+
+      document.getElementById("agentGenerateBtn").addEventListener("click", async function () {
+        var btn = document.getElementById("agentGenerateBtn");
+        var resultEl = document.getElementById("agentResult");
+        var payload = {
+          role: document.getElementById("agentRole").value,
+          tone: document.getElementById("agentTone").value,
+          task: document.getElementById("agentTask").value,
+          context: document.getElementById("agentContext").value,
+        };
+        btn.disabled = true;
+        btn.textContent = "Gerando...";
+        try {
+          var out = await PromptAPI.withFallback(
+            function () { return PromptAPI.agent(payload); },
+            function () { return PromptEngine.generateAgentPrompt(payload); }
+          );
+          if (out.error) return PromptAtelier.showToast(out.error);
+          resultEl.textContent = out.result;
+          resultEl.classList.remove("empty");
+        } catch (e) {
+          PromptAtelier.showToast(e.message || "Falha na geração.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Gerar Prompt de Agente";
+        }
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        document.getElementById("agentTask").value = "";
+        document.getElementById("agentContext").value = "";
+        var resultEl = document.getElementById("agentResult");
+        resultEl.textContent = "Seu prompt de agente aparecerá aqui...";
+        resultEl.classList.add("empty");
+      });
+    })();
+  </script>
+</body>
+</html>

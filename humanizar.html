@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Humanizador de IA — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Humanizador de IA</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1>Humanizador de IA Gratuito</h1>
+        <p>Deixe textos gerados por IA com tom mais natural e humano.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-group">
+          <label for="humanInput">Seu texto gerado por IA</label>
+          <textarea id="humanInput" placeholder="Cole seu conteúdo aqui..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="humanBtn">Humanizar Texto</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Limpar</button>
+        </div>
+        <div class="result-box">
+          <label>Resultado humanizado <button type="button" class="copy-sm" data-copy-from="humanResult">Copiar</button></label>
+          <div id="humanResult" class="result-output empty">Seu texto humanizado aparecerá aqui...</div>
+        </div>
+      </div>
+
+      <section class="content-block faq-section">
+        <h2>Perguntas frequentes</h2>
+        <details class="faq-item">
+          <summary>Altera o significado?</summary>
+          <p>Não. O foco é variar estrutura, conectores e tom — preservando a mensagem original.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Funciona em português?</summary>
+          <p>Sim. Otimizado para PT-BR, com suporte básico a inglês.</p>
+        </details>
+      </section>
+    </main>
+    <footer class="footer"><p>© 2026 Prompt Atelier</p></footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="engine.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("humanBtn").addEventListener("click", async function () {
+      var btn = document.getElementById("humanBtn");
+      var el = document.getElementById("humanResult");
+      var input = document.getElementById("humanInput").value;
+      btn.disabled = true;
+      btn.textContent = "Humanizando...";
+      try {
+        var out = await PromptAPI.withFallback(
+          function () { return PromptAPI.humanize(input); },
+          function () { return PromptEngine.humanizeText(input); }
+        );
+        if (out.error) return PromptAtelier.showToast(out.error);
+        el.textContent = out.result;
+        el.classList.remove("empty");
+      } catch (e) {
+        PromptAtelier.showToast(e.message || "Falha ao humanizar.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Humanizar Texto";
+      }
+    });
+    document.getElementById("clearBtn").addEventListener("click", function () {
+      document.getElementById("humanInput").value = "";
+      var el = document.getElementById("humanResult");
+      el.textContent = "Seu texto humanizado aparecerá aqui...";
+      el.classList.add("empty");
+    });
+  </script>
+</body>
+</html>

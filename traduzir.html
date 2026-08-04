@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tradutor de IA — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Tradutor de IA</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1>Tradutor de IA Gratuito</h1>
+        <p>Traduza textos rapidamente entre dezenas de idiomas.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-row translate-row">
+          <div class="form-group">
+            <label for="langFrom">De</label>
+            <select id="langFrom">
+              <option value="pt">Português</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
+              <option value="de">Alemão</option>
+              <option value="it">Italiano</option>
+            </select>
+          </div>
+          <button type="button" class="swap-btn" id="swapBtn" title="Trocar idiomas">⇄</button>
+          <div class="form-group">
+            <label for="langTo">Para</label>
+            <select id="langTo">
+              <option value="en">Inglês</option>
+              <option value="pt">Português</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
+              <option value="de">Alemão</option>
+              <option value="it">Italiano</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sourceText">Texto original</label>
+            <textarea id="sourceText" placeholder="Digite o texto para traduzir..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="targetText">Tradução</label>
+            <textarea id="targetText" readonly placeholder="A tradução aparecerá aqui..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="translateBtn">Traduzir</button>
+          <button type="button" class="btn btn-secondary" id="copyTranslateBtn">Copiar tradução</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Limpar</button>
+        </div>
+      </div>
+    </main>
+    <footer class="footer"><p>© 2026 Prompt Atelier</p></footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    var LANG_NAMES = { pt: "português", en: "inglês", es: "espanhol", fr: "francês", de: "alemão", it: "italiano" };
+    document.getElementById("swapBtn").addEventListener("click", function () {
+      var from = document.getElementById("langFrom");
+      var to = document.getElementById("langTo");
+      var tmp = from.value;
+      from.value = to.value;
+      to.value = tmp;
+    });
+
+    document.getElementById("translateBtn").addEventListener("click", async function () {
+      var text = document.getElementById("sourceText").value.trim();
+      if (!text) return PromptAtelier.showToast("Insira algum texto para traduzir.");
+      var from = document.getElementById("langFrom").value;
+      var to = document.getElementById("langTo").value;
+      if (from === to) return PromptAtelier.showToast("Selecione idiomas diferentes.");
+      var btn = document.getElementById("translateBtn");
+      btn.disabled = true;
+      btn.textContent = "Traduzindo...";
+      try {
+        var out = await PromptAPI.withFallback(
+          function () {
+            return PromptAPI.translate(text, LANG_NAMES[from] || from, LANG_NAMES[to] || to);
+          },
+          async function () {
+            var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + from + "|" + to;
+            var res = await fetch(url);
+            var data = await res.json();
+            if (data.responseStatus !== 200) throw new Error("Falha no tradutor alternativo");
+            return { result: data.responseData.translatedText };
+          }
+        );
+        document.getElementById("targetText").value = out.result;
+      } catch (e) {
+        PromptAtelier.showToast(e.message || "Falha na tradução.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Traduzir";
+      }
+    });
+
+    document.getElementById("copyTranslateBtn").addEventListener("click", function () {
+      PromptAtelier.copyText(document.getElementById("targetText").value);
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", function () {
+      document.getElementById("sourceText").value = "";
+      document.getElementById("targetText").value = "";
+    });
+  </script>
+</body>
+</html>

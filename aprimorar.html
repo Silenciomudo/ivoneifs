@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aprimore seus prompts de IA — transforme ideias simples em instruções profissionais para ChatGPT, Midjourney e mais.">
+  <title>Aprimorador de Prompt — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Aprimorador de Prompt</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1>Aprimorador de Prompt de IA</h1>
+        <p>Transforme ideias simples em prompts profissionais e detalhados.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-group">
+          <label for="enhanceInput">Insira seu prompt</label>
+          <textarea id="enhanceInput" placeholder="Insira seu prompt aqui..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de aprimoramento</label>
+          <div class="chip-select" id="enhanceChips"></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="enhanceBtn">Aprimorar Prompt</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Limpar</button>
+        </div>
+
+        <div class="result-box">
+          <label>
+            Prompt aprimorado
+            <button type="button" class="copy-sm" data-copy-from="enhanceResult">Copiar</button>
+          </label>
+          <div id="enhanceResult" class="result-output empty">Seu prompt aprimorado aparecerá aqui...</div>
+        </div>
+      </div>
+
+      <section class="content-block">
+        <h2>Exemplos de uso</h2>
+        <div class="example-grid">
+          <div class="example-item">
+            <strong>Narração criativa</strong>
+            Original: "Uma história sobre um relógio mágico"<br>
+            Aprimorado: prompt expandido com temas, conflito e tom narrativo.
+          </div>
+          <div class="example-item">
+            <strong>Comunicação profissional</strong>
+            Original: "E-mail para meu chefe sobre meu projeto"<br>
+            Aprimorado: estrutura formal com marcos, próximos passos e tom executivo.
+          </div>
+          <div class="example-item">
+            <strong>Arte com IA</strong>
+            Original: "Uma foto de um dragão"<br>
+            Aprimorado: descritores visuais, iluminação, estilo e resolução 8K.
+          </div>
+        </div>
+      </section>
+
+      <section class="content-block two-col-tips">
+        <div class="tip-list good">
+          <h3>✅ Melhores práticas</h3>
+          <ul>
+            <li>Comece com uma ideia clara, mesmo que curta</li>
+            <li>Escolha o tipo certo para seu objetivo</li>
+            <li>Refine o resultado manualmente depois</li>
+          </ul>
+        </div>
+        <div class="tip-list bad">
+          <h3>🚫 Evite</h3>
+          <ul>
+            <li>Entradas de uma única palavra</li>
+            <li>Esperar conteúdo final pronto (só o prompt)</li>
+            <li>Informações pessoais sensíveis</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="content-block faq-section">
+        <h2>Perguntas frequentes</h2>
+        <details class="faq-item">
+          <summary>Como funciona?</summary>
+          <p>Analisa seu texto e o tipo selecionado, reescrevendo o prompt com mais contexto, estrutura e detalhes para melhores resultados em outras IAs.</p>
+        </details>
+        <details class="faq-item">
+          <summary>É gratuito?</summary>
+          <p>Sim, 100% gratuito e sem limite de uso.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Isso escreve o conteúdo final?</summary>
+          <p>Não. Aprimora apenas o prompt — a instrução que você enviará ao ChatGPT, Claude ou gerador de imagens.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Prompt Atelier</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="engine.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var selected = "improve";
+      var chipsEl = document.getElementById("enhanceChips");
+      var inputEl = document.getElementById("enhanceInput");
+      var resultEl = document.getElementById("enhanceResult");
+
+      PromptEngine.listEnhanceTypes().forEach(function (t) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = t.label;
+        btn.dataset.key = t.key;
+        if (t.key === selected) btn.classList.add("active");
+        btn.addEventListener("click", function () {
+          selected = t.key;
+          chipsEl.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("active", b.dataset.key === selected);
+          });
+        });
+        chipsEl.appendChild(btn);
+      });
+
+      document.getElementById("enhanceBtn").addEventListener("click", async function () {
+        var btn = document.getElementById("enhanceBtn");
+        var el = document.getElementById("enhanceResult");
+        var input = document.getElementById("enhanceInput").value;
+        btn.disabled = true;
+        btn.textContent = "Aprimorando...";
+        try {
+          var out = await PromptAPI.withFallback(
+            function () { return PromptAPI.enhance(input, selected); },
+            function () { return PromptEngine.enhancePrompt(input, selected); }
+          );
+          if (out.error) return PromptAtelier.showToast(out.error);
+          el.textContent = out.result;
+          el.classList.remove("empty");
+          if (out.fallback) PromptAtelier.showToast("Modo local (configure .env para OpenAI)");
+        } catch (e) {
+          PromptAtelier.showToast(e.message || "Falha no aprimoramento.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Aprimorar Prompt";
+        }
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        inputEl.value = "";
+        resultEl.textContent = "Seu prompt aprimorado aparecerá aqui...";
+        resultEl.classList.add("empty");
+      });
+    })();
+  </script>
+</body>
+</html>

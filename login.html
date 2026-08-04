@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Entre na sua conta Prompt Atelier">
+  <title>Entrar — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-body">
+  <div class="grain" aria-hidden="true"></div>
+
+  <button type="button" class="auth-theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+
+  <main class="auth-page">
+    <div class="auth-glow" aria-hidden="true"></div>
+
+    <div class="auth-card">
+      <a href="index.html" class="auth-logo">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">Prompt Atelier</span>
+      </a>
+
+      <header class="auth-header">
+        <h1>Bem-vindo de volta</h1>
+        <p>Entre com sua conta Supabase para acessar o Prompt Atelier.</p>
+      </header>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" name="email" autocomplete="email" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Senha</label>
+          <div class="password-field">
+            <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="••••••••" required>
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Mostrar senha">👁</button>
+          </div>
+        </div>
+
+        <div class="auth-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="rememberMe" checked>
+            <span>Manter conectado</span>
+          </label>
+          <a href="#" class="auth-link-muted" id="forgotLink">Esqueci a senha</a>
+        </div>
+
+        <p class="auth-error" id="loginError" hidden></p>
+        <p class="auth-success" id="loginSuccess" hidden></p>
+
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Entrar</button>
+      </form>
+
+      <p class="auth-footer">
+        Ainda não tem conta?
+        <a href="cadastro.html" class="auth-link">Criar conta grátis</a>
+      </p>
+
+      <a href="index.html" class="auth-back">← Voltar ao início</a>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var redirect = params.get("redirect") || "index.html";
+
+      var form = document.getElementById("loginForm");
+      var errorEl = document.getElementById("loginError");
+      var successEl = document.getElementById("loginSuccess");
+      var passInput = document.getElementById("loginPassword");
+      var toggleBtn = document.getElementById("togglePassword");
+
+      PromptAuth.init().then(async function () {
+        if (await PromptAuth.isLoggedIn()) {
+          location.replace(redirect);
+        }
+      }).catch(function (e) {
+        errorEl.textContent = e.message;
+        errorEl.hidden = false;
+      });
+
+      toggleBtn.addEventListener("click", function () {
+        var show = passInput.type === "password";
+        passInput.type = show ? "text" : "password";
+        toggleBtn.setAttribute("aria-label", show ? "Ocultar senha" : "Mostrar senha");
+      });
+
+      document.getElementById("forgotLink").addEventListener("click", async function (e) {
+        e.preventDefault();
+        errorEl.hidden = true;
+        successEl.hidden = true;
+        var email = document.getElementById("loginEmail").value.trim();
+        if (!email) {
+          errorEl.textContent = "Informe seu e-mail para recuperar a senha.";
+          errorEl.hidden = false;
+          return;
+        }
+        var out = await PromptAuth.resetPassword(email);
+        if (out.error) {
+          errorEl.textContent = out.error;
+          errorEl.hidden = false;
+          return;
+        }
+        successEl.textContent = out.message;
+        successEl.hidden = false;
+      });
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        errorEl.hidden = true;
+        successEl.hidden = true;
+
+        var btn = document.getElementById("loginBtn");
+        btn.disabled = true;
+        btn.textContent = "Entrando...";
+
+        var out = await PromptAuth.login(
+          document.getElementById("loginEmail").value,
+          passInput.value
+        );
+
+        if (out.error) {
+          errorEl.textContent = out.error;
+          errorEl.hidden = false;
+          btn.disabled = false;
+          btn.textContent = "Entrar";
+          return;
+        }
+
+        PromptAtelier.showToast("Login realizado!");
+        setTimeout(function () {
+          location.href = redirect;
+        }, 400);
+      });
+    })();
+  </script>
+</body>
+</html>

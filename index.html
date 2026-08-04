@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Prompt Atelier — gere e aprimore prompts profissionais para ChatGPT, Claude, Midjourney, DALL-E e outras IAs. Gratuito, sem cadastro.">
+  <title>Prompt Atelier — Gerador de Prompts de IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Gerador de Prompts de IA</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-badge">100% gratuito · Sem registro</div>
+        <h1>Transforme ideias em <em>prompts profissionais</em></h1>
+        <p class="hero-lead">
+          Crie prompts otimizados para ChatGPT, Claude, Gemini, Midjourney, DALL-E e dezenas de outras ferramentas de IA — em segundos.
+        </p>
+        <div class="hero-actions">
+          <a href="gerar.html" class="btn btn-primary">Começar a Gerar</a>
+          <a href="aprimorar.html" class="btn btn-ghost">Aprimorar Prompt</a>
+          <a href="imagem-prompt.html" class="btn btn-ghost">Imagem → Prompt</a>
+          <a href="login.html" class="btn btn-ghost">Entrar</a>
+        </div>
+        <ul class="hero-features">
+          <li>Resultados instantâneos</li>
+          <li>10+ idiomas</li>
+          <li>Copiar com um clique</li>
+        </ul>
+      </section>
+
+      <section class="preview-section">
+        <div class="preview-card">
+          <div class="preview-header">
+            <span>Visualização do Prompt</span>
+            <button type="button" class="copy-sm" data-copy-target="#previewText">Copiar</button>
+          </div>
+          <p id="previewText" class="preview-text">
+            "Crie um prompt detalhado para uma paisagem urbana futurista à noite, com luzes de néon refletindo em ruas molhadas, estética cyberpunk, altamente detalhado, resolução 8K, iluminação cinematográfica, ultrarrealista."
+          </p>
+        </div>
+      </section>
+
+      <section class="models-section">
+        <h2>Perfeito para criar prompts para</h2>
+        <div class="model-chips">
+          <span>ChatGPT</span><span>Claude</span><span>Gemini</span><span>Midjourney</span>
+          <span>DALL·E</span><span>Stable Diffusion</span><span>Flux</span><span>DeepSeek</span>
+        </div>
+      </section>
+
+      <section class="features-grid">
+        <h2>Por que o Prompt Atelier?</h2>
+        <p class="section-sub">Tecnologia inteligente com interface simples para a melhor experiência de geração de prompts.</p>
+        <div class="cards">
+          <article class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3>Velocidade</h3>
+            <p>Gere prompts profissionais em segundos com regras otimizadas por categoria e modelo.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🧠</span>
+            <h3>Contexto inteligente</h3>
+            <p>Algoritmos que entendem o que você quer e expandem com detalhes relevantes.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">🎛️</span>
+            <h3>Personalizável</h3>
+            <p>Tom, estilo, comprimento e tipo de aprimoramento ajustáveis antes da geração.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon">📱</span>
+            <h3>Pronto para celular</h3>
+            <p>Experiência fluida em desktop, tablet e dispositivos móveis.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tools-section">
+        <h2>Ferramentas</h2>
+        <div class="tool-cards">
+          <a href="gerar.html" class="tool-card">
+            <h3>Gerador de Prompts</h3>
+            <p>Ideia → prompt completo por categoria ou modelo de IA.</p>
+          </a>
+          <a href="aprimorar.html" class="tool-card">
+            <h3>Aprimorador</h3>
+            <p>Refine prompts vagos em instruções claras e eficazes.</p>
+          </a>
+          <a href="agente.html" class="tool-card">
+            <h3>Agente de IA</h3>
+            <p>Crie assistentes com papel, tom e objetivo definidos.</p>
+          </a>
+          <a href="imagem-prompt.html" class="tool-card">
+            <h3>Imagem para Prompt</h3>
+            <p>Extraia descrições e prompts a partir de fotos.</p>
+          </a>
+          <a href="humanizar.html" class="tool-card">
+            <h3>Humanizador</h3>
+            <p>Deixe textos de IA com tom mais natural.</p>
+          </a>
+          <a href="traduzir.html" class="tool-card">
+            <h3>Tradutor</h3>
+            <p>Traduza prompts e textos entre idiomas.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="faq-section">
+        <h2>Perguntas frequentes</h2>
+        <details class="faq-item">
+          <summary>O que é o Prompt Atelier?</summary>
+          <p>Ferramenta gratuita que ajuda você a criar prompts otimizados para vários modelos de IA. Transforma ideias básicas em instruções detalhadas que produzem melhores resultados.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Como garantir prompts de alta qualidade?</summary>
+          <p>Forneça informações claras sobre o que deseja gerar. Quanto mais contexto (público, tom, formato), melhor o resultado. Use o aprimorador para expandir entradas curtas.</p>
+        </details>
+        <details class="faq-item">
+          <summary>A ferramenta é gratuita?</summary>
+          <p>Sim. Recursos principais são totalmente gratuitos, sem custos ocultos e sem necessidade de cadastro.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Posso usar os prompts comercialmente?</summary>
+          <p>Sim. Os prompts gerados são seus para usar em projetos pessoais ou comerciais.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Prompt Atelier. Ferramenta independente de engenharia de prompt.</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

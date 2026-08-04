@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imagem para Prompt — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">Imagem para Prompt</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1>Imagem para Prompt de IA</h1>
+        <p>Carregue uma imagem e obtenha descrição ou prompt de arte baseado na análise visual.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="analysisType">Tipo de análise</label>
+            <select id="analysisType">
+              <option value="describe">Descrever imagem</option>
+              <option value="prompt">Criar prompt de IA</option>
+              <option value="detailed">Análise detalhada</option>
+              <option value="creative">História criativa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="fileInput" accept="image/*" hidden>
+          <p class="dropzone-title">Clique ou arraste uma imagem aqui</p>
+          <p class="dropzone-sub">PNG, JPG ou WEBP — máx. 10MB</p>
+        </div>
+
+        <div class="image-preview-wrap hidden" id="previewWrap">
+          <img id="previewImg" alt="Visualização">
+          <button type="button" class="btn btn-secondary btn-sm" id="clearImageBtn">Remover imagem</button>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="analyzeBtn" disabled>Analisar Imagem</button>
+        </div>
+
+        <div class="result-box">
+          <label>Resultado <button type="button" class="copy-sm" data-copy-from="imageResult">Copiar</button></label>
+          <div id="imageResult" class="result-output empty">O resultado aparecerá aqui após a análise...</div>
+        </div>
+      </div>
+
+      <section class="content-block">
+        <p class="section-sub">A análise usa características visuais (cores, luminosidade, composição). Para descrições semânticas avançadas, combine com ChatGPT ou Gemini enviando a imagem.</p>
+      </section>
+    </main>
+    <footer class="footer"><p>© 2026 Prompt Atelier</p></footer>
+  </div>
+
+  <canvas id="analysisCanvas" hidden></canvas>
+  <div class="toast" id="toast"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="engine.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var currentFile = null;
+      var dropzone = document.getElementById("dropzone");
+      var fileInput = document.getElementById("fileInput");
+      var previewWrap = document.getElementById("previewWrap");
+      var previewImg = document.getElementById("previewImg");
+      var analyzeBtn = document.getElementById("analyzeBtn");
+      var resultEl = document.getElementById("imageResult");
+      var canvas = document.getElementById("analysisCanvas");
+
+      function setImage(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          return PromptAtelier.showToast("Selecione um arquivo de imagem válido.");
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          return PromptAtelier.showToast("Arquivo muito grande (máx. 10MB).");
+        }
+        currentFile = file;
+        previewImg.src = URL.createObjectURL(file);
+        previewWrap.classList.remove("hidden");
+        analyzeBtn.disabled = false;
+      }
+
+      dropzone.addEventListener("click", function () { fileInput.click(); });
+      fileInput.addEventListener("change", function () {
+        if (fileInput.files[0]) setImage(fileInput.files[0]);
+      });
+      dropzone.addEventListener("dragover", function (e) { e.preventDefault(); dropzone.classList.add("drag"); });
+      dropzone.addEventListener("dragleave", function () { dropzone.classList.remove("drag"); });
+      dropzone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dropzone.classList.remove("drag");
+        if (e.dataTransfer.files[0]) setImage(e.dataTransfer.files[0]);
+      });
+
+      document.getElementById("clearImageBtn").addEventListener("click", function () {
+        currentFile = null;
+        fileInput.value = "";
+        previewWrap.classList.add("hidden");
+        previewImg.src = "";
+        analyzeBtn.disabled = true;
+        resultEl.textContent = "O resultado aparecerá aqui após a análise...";
+        resultEl.classList.add("empty");
+      });
+
+      analyzeBtn.addEventListener("click", async function () {
+        if (!currentFile) return;
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = "Analisando...";
+        var type = document.getElementById("analysisType").value;
+
+        try {
+          var dataUrl = await new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () { resolve(reader.result); };
+            reader.onerror = reject;
+            reader.readAsDataURL(currentFile);
+          });
+
+          var out = await PromptAPI.withFallback(
+            function () { return PromptAPI.analyzeImage(dataUrl, type); },
+            function () {
+              return new Promise(function (resolve) {
+                var img = new Image();
+                img.onload = function () {
+                  var max = 320;
+                  var scale = Math.min(1, max / Math.max(img.width, img.height));
+                  var w = Math.round(img.width * scale);
+                  var h = Math.round(img.height * scale);
+                  canvas.width = w;
+                  canvas.height = h;
+                  var ctx = canvas.getContext("2d");
+                  ctx.drawImage(img, 0, 0, w, h);
+                  var meta = PromptEngine.extractImageMetaFromCanvas(ctx, w, h);
+                  resolve({ result: PromptEngine.buildImageAnalysis(meta, type) });
+                };
+                img.onerror = function () { resolve({ error: "Não foi possível ler a imagem." }); };
+                img.src = dataUrl;
+              });
+            }
+          );
+
+          if (out.error) return PromptAtelier.showToast(out.error);
+          resultEl.textContent = out.result;
+          resultEl.classList.remove("empty");
+          PromptAtelier.showToast(out.fallback ? "Análise local (use .env para visão OpenAI)" : "Análise concluída!");
+        } catch (e) {
+          PromptAtelier.showToast(e.message || "Falha na análise.");
+        } finally {
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = "Analisar Imagem";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

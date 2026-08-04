@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gere prompts profissionais por categoria ou modelo de IA — escrita, arte, código, ChatGPT, Midjourney e mais.">
+  <title>Gerar Prompts — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="layout">
+    <header class="topbar">
+      <button type="button" class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title" id="pageTitleBar">Gerador de Prompts</span>
+      <button type="button" class="theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+    </header>
+
+    <main>
+      <header class="page-header">
+        <h1 id="pageHeading">Gerador de Prompt de IA</h1>
+        <p id="pageDesc">Insira uma ideia e receba um prompt estruturado pronto para usar.</p>
+      </header>
+
+      <div class="tool-panel">
+        <div class="form-group">
+          <label for="tipoSelect">Tipo de prompt</label>
+          <select id="tipoSelect">
+            <optgroup label="Geral">
+              <option value="default">Geral</option>
+            </optgroup>
+            <optgroup label="Por categoria">
+              <option value="escrita">Escrita</option>
+              <option value="arte">Arte de IA</option>
+              <option value="codigo">Codificação</option>
+              <option value="video">Vídeo</option>
+              <option value="musica">Música</option>
+              <option value="personagem">Personagem</option>
+            </optgroup>
+            <optgroup label="Por modelo">
+              <option value="chatgpt">ChatGPT</option>
+              <option value="claude">Claude</option>
+              <option value="gemini">Gemini</option>
+              <option value="midjourney">Midjourney</option>
+              <option value="dalle">DALL·E</option>
+              <option value="stable-diffusion">Stable Diffusion</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="ideaInput" id="ideaLabel">Seu tópico ou ideia:</label>
+          <textarea id="ideaInput" placeholder="Insira seu tópico ou ideia aqui..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="generateBtn">Gerar</button>
+          <button type="button" class="btn btn-secondary" id="randomBtn">Aleatório</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Limpar</button>
+        </div>
+
+        <div class="result-box">
+          <label>
+            Resultado
+            <button type="button" class="copy-sm" data-copy-from="generateResult">Copiar</button>
+          </label>
+          <div id="generateResult" class="result-output empty">Seu prompt gerado aparecerá aqui...</div>
+        </div>
+      </div>
+
+      <section class="content-block tool-panel">
+        <h2>Obter sugestões por tópico</h2>
+        <div class="form-group">
+          <label for="topicInput">Tópico</label>
+          <input type="text" id="topicInput" placeholder="ex: exploração espacial, receitas saudáveis, violão">
+        </div>
+        <button type="button" class="btn btn-primary" id="suggestBtn">Obter Sugestões</button>
+        <div class="suggestion-list" id="suggestionList"></div>
+      </section>
+
+      <section class="content-block">
+        <h2>Exemplos de boas entradas</h2>
+        <div class="example-grid" id="goodExamples"></div>
+      </section>
+
+      <section class="content-block two-col-tips">
+        <div class="tip-list good">
+          <h3>✅ Faça</h3>
+          <ul id="dosList">
+            <li>Seja específico sobre objetivo e público</li>
+            <li>Mencione tom e formato desejados</li>
+            <li>Use frases completas</li>
+          </ul>
+        </div>
+        <div class="tip-list bad">
+          <h3>🚫 Evite</h3>
+          <ul id="dontsList">
+            <li>Palavras únicas como "história" ou "imagem"</li>
+            <li>Entradas vagas: "faça algo legal"</li>
+            <li>Pedidos incompletos: "escreva sobre..."</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Prompt Atelier</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="nav.js"></script>
+  <script src="engine.js"></script>
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var tipo = params.get("tipo") || "default";
+      var selectEl = document.getElementById("tipoSelect");
+      var ideaEl = document.getElementById("ideaInput");
+      var resultEl = document.getElementById("generateResult");
+      var headingEl = document.getElementById("pageHeading");
+      var labelEl = document.getElementById("ideaLabel");
+      var titleBar = document.getElementById("pageTitleBar");
+
+      var EXAMPLES = {
+        default: ["Descrição de produto para fones fitness", "E-mail de marketing para café por assinatura"],
+        escrita: ["Conto sobre livraria mágica", "Romance de ficção científica com realidade virtual"],
+        arte: ["Dragão em nuvens de tempestade, iluminação cinematográfica", "Cidade cyberpunk à noite, néon em ruas molhadas"],
+        codigo: ["App de tarefas com drag-and-drop e equipes", "API REST para receitas com avaliações"],
+        chatgpt: ["Explique física quântica para iniciantes", "Plano de estudos para concursos"],
+        midjourney: ["Retrato fotorrealista, cabelo ao vento, golden hour", "Dragão steampunk, estilo concept art"],
+      };
+
+      function applyType(key) {
+        var cfg = PromptEngine.getTypeConfig(key);
+        selectEl.value = key;
+        headingEl.textContent = cfg.title;
+        titleBar.textContent = cfg.title;
+        labelEl.textContent = cfg.label;
+        ideaEl.placeholder = cfg.placeholder;
+
+        var ex = EXAMPLES[key] || EXAMPLES.default;
+        var grid = document.getElementById("goodExamples");
+        grid.innerHTML = ex.map(function (e) {
+          return '<div class="example-item">' + e + '</div>';
+        }).join("");
+      }
+
+      applyType(tipo);
+
+      selectEl.addEventListener("change", function () {
+        var key = selectEl.value;
+        history.replaceState(null, "", key === "default" ? "gerar.html" : "gerar.html?tipo=" + key);
+        applyType(key);
+      });
+
+      document.getElementById("generateBtn").addEventListener("click", async function () {
+        var btn = document.getElementById("generateBtn");
+        btn.disabled = true;
+        btn.textContent = "Gerando...";
+        try {
+          var out = await PromptAPI.withFallback(
+            function () { return PromptAPI.generate(ideaEl.value, selectEl.value); },
+            function () { return PromptEngine.generatePrompt(ideaEl.value, selectEl.value); }
+          );
+          if (out.error) return PromptAtelier.showToast(out.error);
+          resultEl.textContent = out.result;
+          resultEl.classList.remove("empty");
+          if (out.fallback) PromptAtelier.showToast("Modo local (configure .env para OpenAI)");
+        } catch (e) {
+          PromptAtelier.showToast(e.message || "Falha ao gerar.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Gerar";
+        }
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        ideaEl.value = "";
+        resultEl.textContent = "Seu prompt gerado aparecerá aqui...";
+        resultEl.classList.add("empty");
+      });
+
+      document.getElementById("randomBtn").addEventListener("click", function () {
+        var out = PromptEngine.generateRandomPrompt();
+        ideaEl.value = out.result;
+        PromptAtelier.showToast("Ideia aleatória inserida!");
+      });
+
+      document.getElementById("suggestBtn").addEventListener("click", async function () {
+        var topic = document.getElementById("topicInput").value;
+        var list = document.getElementById("suggestionList");
+        var btn = document.getElementById("suggestBtn");
+        btn.disabled = true;
+        btn.textContent = "Obtendo...";
+        try {
+          var out = await PromptAPI.withFallback(
+            function () { return PromptAPI.suggest(topic); },
+            function () { return PromptEngine.generateSuggestions(topic); }
+          );
+          if (out.error) return PromptAtelier.showToast(out.error);
+          var items = out.suggestions || (out.results || []).map(function (s) { return s.text; });
+          if (!items.length && out.result) {
+            items = out.result.split("\n").filter(Boolean);
+          }
+          list.innerHTML = items.map(function (text) {
+            return '<div class="suggestion-card"><span>' + text + '</span><button type="button" data-text="' + text.replace(/"/g, "&quot;") + '">Usar</button></div>';
+          }).join("");
+          list.querySelectorAll("button").forEach(function (btnEl) {
+            btnEl.addEventListener("click", function () {
+              ideaEl.value = btnEl.getAttribute("data-text");
+              PromptAtelier.showToast("Sugestão aplicada!");
+            });
+          });
+        } catch (e) {
+          PromptAtelier.showToast(e.message || "Falha ao obter sugestões.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Obter Sugestões";
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

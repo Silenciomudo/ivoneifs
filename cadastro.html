@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crie sua conta no Prompt Atelier">
+  <title>Criar conta — Prompt Atelier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-body">
+  <div class="grain" aria-hidden="true"></div>
+
+  <button type="button" class="auth-theme-btn" id="themeBtn" aria-label="Alternar tema">◐</button>
+
+  <main class="auth-page">
+    <div class="auth-glow" aria-hidden="true"></div>
+
+    <div class="auth-card">
+      <a href="index.html" class="auth-logo">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">Prompt Atelier</span>
+      </a>
+
+      <header class="auth-header">
+        <h1>Criar conta</h1>
+        <p>Cadastre-se com Supabase Auth — seguro e gratuito.</p>
+      </header>
+
+      <form id="registerForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="registerName">Nome</label>
+          <input type="text" id="registerName" name="name" autocomplete="name" placeholder="Seu nome" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerEmail">E-mail</label>
+          <input type="email" id="registerEmail" name="email" autocomplete="email" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerPassword">Senha</label>
+          <input type="password" id="registerPassword" name="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required>
+        </div>
+
+        <div class="form-group">
+          <label for="registerConfirm">Confirmar senha</label>
+          <input type="password" id="registerConfirm" name="confirm" autocomplete="new-password" placeholder="Repita a senha" required>
+        </div>
+
+        <p class="auth-error" id="registerError" hidden></p>
+        <p class="auth-success" id="registerSuccess" hidden></p>
+
+        <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Criar conta</button>
+      </form>
+
+      <p class="auth-footer">
+        Já tem conta?
+        <a href="login.html" class="auth-link">Entrar</a>
+      </p>
+
+      <a href="index.html" class="auth-back">← Voltar ao início</a>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="config.public.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById("registerForm");
+      var errorEl = document.getElementById("registerError");
+      var successEl = document.getElementById("registerSuccess");
+
+      PromptAuth.init().then(async function () {
+        if (await PromptAuth.isLoggedIn()) location.replace("index.html");
+      }).catch(function (e) {
+        errorEl.textContent = e.message;
+        errorEl.hidden = false;
+      });
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        errorEl.hidden = true;
+        successEl.hidden = true;
+
+        var btn = document.getElementById("registerBtn");
+        btn.disabled = true;
+        btn.textContent = "Criando conta...";
+
+        var out = await PromptAuth.register(
+          document.getElementById("registerName").value,
+          document.getElementById("registerEmail").value,
+          document.getElementById("registerPassword").value,
+          document.getElementById("registerConfirm").value
+        );
+
+        if (out.error) {
+          errorEl.textContent = out.error;
+          errorEl.hidden = false;
+          btn.disabled = false;
+          btn.textContent = "Criar conta";
+          return;
+        }
+
+        if (out.confirmed === false) {
+          successEl.textContent = out.message;
+          successEl.hidden = false;
+          btn.disabled = false;
+          btn.textContent = "Criar conta";
+          return;
+        }
+
+        PromptAtelier.showToast("Conta criada!");
+        setTimeout(function () {
+          location.href = "index.html";
+        }, 400);
+      });
+    })();
+  </script>
+</body>
+</html>
