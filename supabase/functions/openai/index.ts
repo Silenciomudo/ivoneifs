@@ -1,4 +1,4 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SYSTEM_BASE =
   "Você é um especialista em engenharia de prompt. Responda sempre em português do Brasil. " +
