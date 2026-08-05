@@ -12,6 +12,6 @@ if not exist .env (
   exit /b 1
 )
 echo.
-echo  Prompt Atelier — http://localhost:3456
+echo  Irecê AI — http://localhost:3456
 echo.
 call npm run dev

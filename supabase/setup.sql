@@ -1,4 +1,4 @@
--- Prompt Atelier — perfis de usuário (execute no SQL Editor do Supabase)
+-- Irecê AI — perfis de usuário (execute no SQL Editor do Supabase)
 -- Dashboard: https://supabase.com/dashboard/project/zsjmksdkawstrhxkzyls/sql
 
 create table if not exists public.profiles (

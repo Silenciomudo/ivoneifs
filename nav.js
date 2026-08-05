@@ -74,7 +74,7 @@
 
     el.innerHTML =
       '<div class="sidebar-header">' +
-      '<a href="index.html" class="logo"><span class="logo-mark">◈</span><span class="logo-text">Prompt Atelier</span></a>' +
+      '<a href="index.html" class="logo"><span class="logo-mark">◈</span><span class="logo-text">Irecê AI</span></a>' +
       '<button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">×</button>' +
       "</div><nav class=\"sidebar-nav\">" + buildNavHtml() + renderAuthBlock(user) + "</nav>";
   }

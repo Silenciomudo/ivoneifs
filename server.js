@@ -60,7 +60,7 @@ app.post("/api/openai", async function (req, res) {
 
 app.listen(PORT, function () {
   console.log("");
-  console.log("  Prompt Atelier — servidor local");
+  console.log("  Irecê AI — servidor local");
   console.log("  http://localhost:" + PORT);
   console.log("");
   if (!process.env.OPENAI_API_KEY) {

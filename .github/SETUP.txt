@@ -1,4 +1,4 @@
-# Deploy 100% automático — Prompt Atelier
+# Deploy 100% automático — Irecê AI
 #
 # UMA VEZ (GitHub Secrets):
 #   https://github.com/Silenciomudo/ivoneifs/settings/secrets/actions
