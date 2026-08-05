@@ -1,3 +1,6 @@
+# COPIE TODO este arquivo para:
+# .github/workflows/main.yml  (substitua o conteúdo inteiro)
+#
 name: Deploy Automático
 
 on:
